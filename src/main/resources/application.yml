@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: micropay-gateway
+
+server:
+  port: 8200
+
+security:
+  jwt:
+    secret: ed289801ff08db5d4fd8d71cd29ff018bc333b3ab1b9c1d0a261257ed28ae9b3
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      transactionCB:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      paymentCB:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      walletCB:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      securityCB:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+
+  timelimiter:
+    instances:
+      default:
+        timeoutDuration: 3s
