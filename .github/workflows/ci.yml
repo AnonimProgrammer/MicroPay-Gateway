@@ -63,9 +63,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v3'
 
       - name: Install GKE auth plugin
-        run: |
-          gcloud components install gke-gcloud-auth-plugin
-          gcloud config set auth/disable_credentials_plugins false
+        run: gcloud components install gke-gcloud-auth-plugin --quiet
 
       - name: Configure kubectl
         run: |
