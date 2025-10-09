@@ -131,6 +131,6 @@ public class AuthenticationWebFilter implements WebFilter {
 
     private boolean shouldSkip(String path) {
         return path.contains("/auth/login") || path.contains("/auth/register")
-                || path.contains("/actuator/health");
+                || path.contains("/actuator");
     }
 }
