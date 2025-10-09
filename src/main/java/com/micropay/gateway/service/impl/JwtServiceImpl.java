@@ -46,4 +46,15 @@ public class JwtServiceImpl implements JwtService {
                 .getPayload()
                 .getSubject();
     }
+
+    @Override
+    public String extractRole(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
+    }
+
 }
