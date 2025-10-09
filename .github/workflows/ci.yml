@@ -71,6 +71,12 @@ jobs:
           --zone us-central1-c \
           --project ${{ secrets.GKE_PROJECT }}
 
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+
       - name: Deploy to GKE
         run: |
           kubectl set image deployment/gateway-service \
