@@ -6,6 +6,7 @@ import com.micropay.gateway.service.JwtService;
 import com.micropay.gateway.service.adapter.SecurityServiceAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -35,13 +36,39 @@ public class AuthenticationWebFilter implements WebFilter {
         String accessToken = jwtService.extractToken(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
         String refreshToken = exchange.getRequest().getHeaders().getFirst(HEADER_REFRESH_TOKEN);
 
+        if (path.contains("/admin")) {
+            return validateAdminAccess(exchange, chain, accessToken, refreshToken);
+        }
         return handleTokens(exchange, chain, accessToken, refreshToken);
     }
 
-    private Mono<Void> handleTokens(
-            ServerWebExchange exchange, WebFilterChain chain,
-            String accessToken, String refreshToken
+    private Mono<Void> validateAdminAccess(
+            ServerWebExchange exchange,
+            WebFilterChain chain,
+            String accessToken,
+            String refreshToken
     ) {
+        if (isValidToken(accessToken)) {
+            String role = jwtService.extractRole(accessToken);
+
+            if (!"ADMIN".equalsIgnoreCase(role)) {
+                return forbidden(exchange);
+            }
+            return chain.filter(exchange);
+        }
+        if (isValidToken(refreshToken)) {
+            String role = jwtService.extractRole(refreshToken);
+
+            if (!"ADMIN".equalsIgnoreCase(role)) {
+                return forbidden(exchange);
+            }
+            return handleRefreshToken(exchange, refreshToken);
+        }
+        return unauthorized(exchange);
+    }
+
+    private Mono<Void> handleTokens(ServerWebExchange exchange, WebFilterChain chain,
+                                    String accessToken, String refreshToken) {
         if (isValidToken(accessToken)) {
             return forwardWithUserId(exchange, chain, jwtService.extractUserId(accessToken));
         }
@@ -55,9 +82,7 @@ public class AuthenticationWebFilter implements WebFilter {
         return token != null && jwtService.isValidToken(token);
     }
 
-    private Mono<Void> forwardWithUserId(
-            ServerWebExchange exchange, WebFilterChain chain, String userId
-    ) {
+    private Mono<Void> forwardWithUserId(ServerWebExchange exchange, WebFilterChain chain, String userId) {
         ServerHttpRequest mutatedRequest = exchange.getRequest()
                 .mutate()
                 .header(HEADER_USER_ID, userId)
@@ -79,28 +104,32 @@ public class AuthenticationWebFilter implements WebFilter {
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(body);
             exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-            return exchange
-                    .getResponse()
-                    .writeWith(Mono.just(exchange.getResponse()
-                    .bufferFactory().wrap(bytes)));
-        } catch (Exception exception) {
+            return exchange.getResponse().writeWith(
+                    Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
+            );
+        } catch (Exception e) {
             return unauthorized(exchange);
         }
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
-        byte[] bytes = "{\"error\":\"Unauthorized\"}".getBytes();
-        exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.UNAUTHORIZED);
-        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        return writeError(exchange, HttpStatus.UNAUTHORIZED, "Unauthorized");
+    }
 
-        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                .bufferFactory().wrap(bytes)));
+    private Mono<Void> forbidden(ServerWebExchange exchange) {
+        return writeError(exchange, HttpStatus.FORBIDDEN, "Forbidden");
+    }
+
+    private Mono<Void> writeError(ServerWebExchange exchange, HttpStatus status, String message) {
+        byte[] bytes = String.format("{\"error\":\"%s\"}", message).getBytes();
+        exchange.getResponse().setStatusCode(status);
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        return exchange.getResponse().writeWith(
+                Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
+        );
     }
 
     private boolean shouldSkip(String path) {
-        return path.startsWith("/internal/") || path.startsWith("/admin")
-                || path.equals("/auth/login") || path.equals("/auth/register");
+        return path.contains("/auth/login") || path.contains("/auth/register");
     }
-
 }
