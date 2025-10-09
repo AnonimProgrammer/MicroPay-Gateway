@@ -7,7 +7,7 @@ server:
 
 security:
   jwt:
-    secret: ed289801ff08db5d4fd8d71cd29ff018bc333b3ab1b9c1d0a261257ed28ae9b3
+    secret: ${SECURITY_JWT_SECRET}
 
 resilience4j:
   circuitbreaker:
