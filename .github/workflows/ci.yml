@@ -62,6 +62,11 @@ jobs:
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v3'
 
+      - name: Install GKE auth plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
+          gcloud config set auth/disable_credentials_plugins false
+
       - name: Configure kubectl
         run: |
           gcloud container clusters get-credentials micropay-test-cluster \
