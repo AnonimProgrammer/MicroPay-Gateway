@@ -54,24 +54,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v3
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
-          project_id: ${{ secrets.GKE_PROJECT }}
-          service_account_key: ${{ secrets.GKE_SA_KEY }}
-          export_default_credentials: true
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v3'
 
       - name: Configure kubectl
         run: |
           gcloud container clusters get-credentials micropay-test-cluster \
-            --zone us-central1-c \
-            --project ${{ secrets.GKE_PROJECT }}
+          --zone us-central1-c \
+          --project ${{ secrets.GKE_PROJECT }}
 
       - name: Deploy to GKE
         run: |
-          kubectl set image deployment/micropay-gateway \
-            micropay-gateway=docker.io/dockerforomar/micropay-gateway:latest
-          kubectl rollout status deployment/micropay-gateway
+          kubectl set image deployment/gateway-service \
+          gateway-service=docker.io/dockerforomar/micropay-gateway:latest
+          kubectl rollout status deployment/gateway-service
+
 
   
 
