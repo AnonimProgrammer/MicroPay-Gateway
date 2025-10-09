@@ -37,3 +37,23 @@ resilience4j:
     instances:
       default:
         timeoutDuration: 3s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, circuitbreakers, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
