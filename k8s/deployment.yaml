@@ -17,6 +17,7 @@ spec:
       containers:
         - name: gateway-service
           image: docker.io/dockerforomar/micropay-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8200
           env:

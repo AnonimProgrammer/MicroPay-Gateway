@@ -1,4 +1,4 @@
-package com.micropay.gateway.service.impl;
+package com.micropay.gateway.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

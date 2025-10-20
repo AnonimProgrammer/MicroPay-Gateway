@@ -9,8 +9,6 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class GatewayConfig {
 
-    public final static String SECURITY_REFRESH_TOKEN_URL = "http://security-service:8150/v1/auth/refresh-access-token";
-
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
