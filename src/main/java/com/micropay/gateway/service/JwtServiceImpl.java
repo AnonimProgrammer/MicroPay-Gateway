@@ -1,6 +1,5 @@
-package com.micropay.gateway.service.impl;
+package com.micropay.gateway.service;
 
-import com.micropay.gateway.service.JwtService;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
